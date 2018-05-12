@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=DSBExec
+Exec=dsbexec
+Icon=system-run
+Terminal=false
+StartupNotify=false
+Type=Application
+Categories=Utility;System;Application
