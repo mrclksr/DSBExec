@@ -80,11 +80,21 @@ void
 MainWin::doExec()
 {
 	const char *str = edit->text().toUtf8().constData();
+
+	if (*str == '\0')
+		return;
 	if (rootCb->checkState() == Qt::Checked) {
-		QString tmpstr = 
-		    QString(tr("%1 -m \"Execute command '%2' as root\" %3")).
-			arg(PATH_DSBSU).arg(str).arg(str);
-		cmdstr = strdup(tmpstr.toUtf8().constData());
+		char *msg =
+		    strdup(tr("%s -m \"Execute command '%s' as root\" \"%s\"").
+			toUtf8().constData());
+		if (msg == NULL)
+			qh_err(this, EXIT_FAILURE, "strdup()");
+		size_t len = strlen(msg) + 2 * strlen(str) +
+			     strlen(PATH_DSBSU) + 1;
+		if ((cmdstr = (char *)malloc(len)) == NULL)
+			qh_err(this, EXIT_FAILURE, "malloc()");
+		(void)snprintf(cmdstr, len, msg, PATH_DSBSU, str, str);
+		free(msg);
 		proc = dsbexec_exec(cmdstr);
 	} else {
 		cmdstr = strdup(str);
