@@ -79,10 +79,13 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
 void
 MainWin::doExec()
 {
-	const char *str = edit->text().toUtf8().constData();
-
-	if (*str == '\0')
+	char	   *str;
+	const char *input = edit->text().toUtf8().constData();
+	
+	if (*input == '\0')
 		return;
+	if ((cmdstr = str = strdup(input)) == NULL)
+		qh_err(this, EXIT_FAILURE, "strdup()");
 	if (rootCb->checkState() == Qt::Checked) {
 		char *msg =
 		    strdup(tr("%s -m \"Execute command '%s' as root\" \"%s\"").
@@ -94,12 +97,10 @@ MainWin::doExec()
 		if ((cmdstr = (char *)malloc(len)) == NULL)
 			qh_err(this, EXIT_FAILURE, "malloc()");
 		(void)snprintf(cmdstr, len, msg, PATH_DSBSU, str, str);
-		free(msg);
+		free(msg); free(str);
 		proc = dsbexec_exec(cmdstr);
-	} else {
-		cmdstr = strdup(str);
+	} else
 		proc = dsbexec_exec(cmdstr);
-	}
 	close();
 	if (proc == NULL)
 		QCoreApplication::exit(1);
