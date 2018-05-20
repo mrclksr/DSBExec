@@ -23,7 +23,7 @@
  */
 
 #include <QDesktopWidget>
-#include <err.h>
+#include <QTextCodec>
 #include "mainwin.h"
 #include "qt-helper/qt-helper.h"
 
@@ -80,16 +80,18 @@ void
 MainWin::doExec()
 {
 	char	   *str;
-	const char *input = edit->text().toUtf8().constData();
+	QTextCodec *codec = QTextCodec::codecForLocale();
+	QByteArray encstr = codec->fromUnicode(edit->text());
+	const char *input = encstr.data();
 	
 	if (*input == '\0')
 		return;
 	if ((cmdstr = str = strdup(input)) == NULL)
 		qh_err(this, EXIT_FAILURE, "strdup()");
 	if (rootCb->checkState() == Qt::Checked) {
-		char *msg =
-		    strdup(tr("%s -m \"Execute command '%s' as root\" \"%s\"").
-			toUtf8().constData());
+		encstr = codec->fromUnicode(
+		    tr("%s -m \"Execute command '%s' as root\" \"%s\""));
+		char *msg = strdup(encstr.data());
 		if (msg == NULL)
 			qh_err(this, EXIT_FAILURE, "strdup()");
 		size_t len = strlen(msg) + 2 * strlen(str) +
