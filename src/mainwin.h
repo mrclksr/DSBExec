@@ -51,8 +51,7 @@ public:
 	char	     *cmdstr;
 	dsbexec_proc *proc = 0;
 private:
-	QLineEdit  *edit;
-	QCheckBox  *rootCb;
-	QCompleter *autoCompleter;
+	QLineEdit *edit;
+	QCheckBox *rootCb;
 };
 

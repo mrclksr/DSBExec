@@ -141,7 +141,7 @@ void MainWin::initAutoCompleter()
 	}
 	free(paths);
 
-	autoCompleter = new QCompleter(list, this);
+	QCompleter *autoCompleter = new QCompleter(list, this);
 	autoCompleter->setCaseSensitivity(Qt::CaseSensitive);
 	autoCompleter->setCompletionMode(QCompleter::PopupCompletion);
 	edit->setCompleter(autoCompleter);
