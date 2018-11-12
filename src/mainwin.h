@@ -34,6 +34,7 @@
 #include <QBoxLayout>
 #include <QWidget>
 #include <QMainWindow>
+#include <QCompleter>
 
 #include "libdsbexec.h"
 
@@ -45,11 +46,13 @@ private slots:
 	void cbCancel();
 	void doExec();
 	void closeEvent(QCloseEvent *);
+	void initAutoCompleter();
 public:
 	char	     *cmdstr;
 	dsbexec_proc *proc = 0;
 private:
-	QLineEdit *edit;
-	QCheckBox *rootCb;
+	QLineEdit  *edit;
+	QCheckBox  *rootCb;
+	QCompleter *autoCompleter;
 };
 

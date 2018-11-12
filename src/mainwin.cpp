@@ -24,6 +24,10 @@
 
 #include <QDesktopWidget>
 #include <QTextCodec>
+#include <QDir>
+#include <QDebug>
+#include <QStringList>
+#include <QString>
 #include "mainwin.h"
 #include "qt-helper/qt-helper.h"
 
@@ -74,6 +78,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
 	connect(ok, SIGNAL(clicked()), this, SLOT(doExec()));
 	connect(edit, SIGNAL(returnPressed()), this, SLOT(doExec()));
 	connect(cancel, SIGNAL(clicked()), this, SLOT(cbCancel()));
+	initAutoCompleter();
 }
 
 void
@@ -115,8 +120,25 @@ MainWin::cbCancel()
 	QCoreApplication::exit(-1);
 }
 
-void MainWin::closeEvent(QCloseEvent */* unused */)
+void MainWin::closeEvent(QCloseEvent * /* unused */)
 {
 	QCoreApplication::exit(-1);
 }
 
+void MainWin::initAutoCompleter()
+{
+	char	    *p, *paths;
+	QStringList list;
+
+	if ((paths = getenv("PATH")) == NULL)
+		return;
+	for (p = paths; (p = strtok(p, ":")) != NULL; p = NULL) {
+		QDir dir(p);
+		list += dir.entryList(QStringList(), QDir::Files);
+		list.sort();
+	}
+	autoCompleter = new QCompleter(list, this);
+	autoCompleter->setCaseSensitivity(Qt::CaseSensitive);
+	autoCompleter->setCompletionMode(QCompleter::PopupCompletion);
+	edit->setCompleter(autoCompleter);
+}
