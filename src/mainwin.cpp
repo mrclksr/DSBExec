@@ -130,13 +130,17 @@ void MainWin::initAutoCompleter()
 	char	    *p, *paths;
 	QStringList list;
 
-	if ((paths = getenv("PATH")) == NULL)
+	if ((p = getenv("PATH")) == NULL)
 		return;
+	if ((paths = strdup(p)) == NULL)
+		qh_err(this, EXIT_FAILURE, "strdup()");
 	for (p = paths; (p = strtok(p, ":")) != NULL; p = NULL) {
 		QDir dir(p);
 		list += dir.entryList(QStringList(), QDir::Files);
 		list.sort();
 	}
+	free(paths);
+
 	autoCompleter = new QCompleter(list, this);
 	autoCompleter->setCaseSensitivity(Qt::CaseSensitive);
 	autoCompleter->setCompletionMode(QCompleter::PopupCompletion);
