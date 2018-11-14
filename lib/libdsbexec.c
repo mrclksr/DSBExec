@@ -24,6 +24,7 @@
 
 #include <err.h>
 #include <errno.h>
+#define _WITH_GETLINE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -31,6 +32,7 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <pwd.h>
 #include <limits.h>
 #include <libutil.h>
 #include <time.h>
@@ -41,7 +43,9 @@
 #include "libdsbexec.h"
 
 #define ERRBUFSZ	1024
+#define MAXHISTSIZE	100
 #define FATAL_SYSERR	(DSBEXEC_ERR_SYS | DSBEXEC_ERR_FATAL)
+#define PATH_HISTORY	".dsbexec.history"
 
 #define ERROR(ret, error, prepend, fmt, ...) do { \
 	set_error(error, prepend, fmt, ##__VA_ARGS__); \
@@ -56,8 +60,10 @@ struct dsbexec_proc_s {
 static int  wait_on_proc(dsbexec_proc *);
 static void set_error(int, bool, const char *, ...);
 
-static int  _error;
-static char errmsg[ERRBUFSZ];
+static int    _error;
+static char   errmsg[ERRBUFSZ];
+static char   *history[MAXHISTSIZE];
+static size_t histsize;
 
 const char *
 dsbexec_strerror()
@@ -76,7 +82,7 @@ dsbexec_exec(const char *cmd)
 {
 	sigset_t     sset;
 	dsbexec_proc *proc;
-	warnx("CMD == %s", cmd);
+
 	if ((proc = malloc(sizeof(dsbexec_proc))) == NULL)
 		ERROR(NULL, FATAL_SYSERR, false, "malloc()");
 	proc->pid = -1;
@@ -123,6 +129,85 @@ dsbexec_wait(dsbexec_proc *proc)
 	(void)sigprocmask(SIG_SETMASK, &proc->sset, NULL);
 
 	return (ret);
+}
+
+char **
+dsbexec_read_history(size_t *size)
+{
+	FILE	      *fp;
+	char	      *line, histpath[PATH_MAX];
+	size_t	      linecap;
+	struct passwd *pw;
+
+	_error = 0;
+	if ((pw = getpwuid(getuid())) == NULL)
+		ERROR(NULL, FATAL_SYSERR, false, "getpwuid()");
+	(void)snprintf(histpath, sizeof(histpath), "%s/%s", pw->pw_dir,
+	    PATH_HISTORY);
+	endpwent();
+	if ((fp = fopen(histpath, "r")) == NULL) {
+		if (errno != ENOENT)
+			ERROR(NULL, FATAL_SYSERR, false, "fopen(%s)", histpath);
+		return (NULL);
+	}
+	histsize = linecap = 0; line = NULL;
+	while (getline(&line, &linecap, fp) > 0 && histsize < MAXHISTSIZE) {
+		if ((history[histsize++] = strdup(line)) == NULL)
+			ERROR(NULL, FATAL_SYSERR, false, "strdup()");
+		(void)strtok(history[histsize - 1], "\n\r");
+	}
+	free(line);
+	fclose(fp);
+
+	*size = histsize;
+
+	return (history);
+}
+
+int
+dsbexec_add_to_history(const char *cmd)
+{
+	size_t i, n;
+
+	_error = 0;
+	if (*cmd == '\0')
+		return (0);
+	if (histsize >= MAXHISTSIZE) {
+		histsize = MAXHISTSIZE;
+		free(history[histsize - 1]);
+		n = histsize - 1;
+	} else
+		n = histsize++;
+	for (i = n; i >= 1;  i--)
+		history[i] = history[i - 1];
+	if ((history[0] = strdup(cmd)) == NULL)
+		ERROR(-1, FATAL_SYSERR, false, "strdup()");
+	(void)strtok(history[0], "\n\r");
+
+	return (0);
+}
+
+int
+dsbexec_write_history()
+{
+	char	      histpath[PATH_MAX];
+	FILE	      *fp;
+	size_t	      i;
+	struct passwd *pw;
+
+	_error = 0;
+	if ((pw = getpwuid(getuid())) == NULL)
+		ERROR(-1, FATAL_SYSERR, false, "getpwuid()");
+	(void)snprintf(histpath, sizeof(histpath), "%s/%s", pw->pw_dir,
+	    PATH_HISTORY);
+	endpwent();
+	if ((fp = fopen(histpath, "w+")) == NULL)
+		ERROR(-1, FATAL_SYSERR, false, "fopen(%s)", histpath);
+	for (i = 0; i < histsize; i++)
+		(void)fprintf(fp, "%s\n", history[i]);
+	fclose(fp);
+
+	return (0);
 }
 
 static void

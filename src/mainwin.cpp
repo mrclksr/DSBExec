@@ -25,9 +25,9 @@
 #include <QDesktopWidget>
 #include <QTextCodec>
 #include <QDir>
-#include <QDebug>
 #include <QStringList>
 #include <QString>
+
 #include "mainwin.h"
 #include "qt-helper/qt-helper.h"
 
@@ -79,6 +79,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
 	connect(edit, SIGNAL(returnPressed()), this, SLOT(doExec()));
 	connect(cancel, SIGNAL(clicked()), this, SLOT(cbCancel()));
 	initAutoCompleter();
+	initHistory();
 }
 
 void
@@ -91,6 +92,12 @@ MainWin::doExec()
 	
 	if (*input == '\0')
 		return;
+	if (dsbexec_add_to_history(input) == -1)
+		qh_errx(NULL, EXIT_FAILURE, "%s", dsbexec_strerror());
+	if (dsbexec_write_history() == -1)
+		qh_errx(NULL, EXIT_FAILURE, "%s", dsbexec_strerror());
+	addToHistory(edit->text());
+
 	if ((cmdstr = str = strdup(input)) == NULL)
 		qh_err(this, EXIT_FAILURE, "strdup()");
 	if (rootCb->checkState() == Qt::Checked) {
@@ -146,3 +153,45 @@ void MainWin::initAutoCompleter()
 	autoCompleter->setCompletionMode(QCompleter::PopupCompletion);
 	edit->setCompleter(autoCompleter);
 }
+
+void MainWin::keyPressEvent(QKeyEvent *e) {
+	if (e->key() == Qt::Key_Up) {
+		if (histCursor < history->count() - 1)
+			edit->setText(history->at(++histCursor));
+		e->ignore();
+	} else if (e->key() == Qt::Key_Down) {
+		if (histCursor > 0) {
+			edit->setText(history->at(--histCursor));
+		} else {
+			histCursor = -1;
+			edit->setText("");
+		}
+		e->ignore();
+	}
+}
+
+void MainWin::initHistory()
+{
+	char   **hv;
+	size_t size;
+
+	histCursor = -1;
+	history = new QStringList;
+
+	if ((hv = dsbexec_read_history(&size)) == NULL) {
+		if (dsbexec_error() != 0)
+			qh_errx(NULL, EXIT_FAILURE, "%s", dsbexec_strerror());
+		return;
+	}
+	for (size_t i = 0; i < size; i++) {
+		QString s(hv[i]);
+		history->append(s);
+	}
+}
+
+void MainWin::addToHistory(QString s)
+{
+	history->prepend(s);
+	histCursor = -1;
+}
+

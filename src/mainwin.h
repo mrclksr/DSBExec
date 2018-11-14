@@ -35,7 +35,7 @@
 #include <QWidget>
 #include <QMainWindow>
 #include <QCompleter>
-
+#include <QKeyEvent>
 #include "libdsbexec.h"
 
 class MainWin : public QMainWindow {
@@ -47,11 +47,16 @@ private slots:
 	void doExec();
 	void closeEvent(QCloseEvent *);
 	void initAutoCompleter();
+	void keyPressEvent(QKeyEvent *e);
+	void initHistory();
+	void addToHistory(QString s);
 public:
 	char	     *cmdstr;
 	dsbexec_proc *proc = 0;
 private:
-	QLineEdit *edit;
-	QCheckBox *rootCb;
+	int	     histCursor = -1;
+	QLineEdit    *edit;
+	QCheckBox    *rootCb;
+	QStringList  *history;
 };
 

@@ -36,6 +36,9 @@ typedef struct dsbexec_proc_s dsbexec_proc;
 __BEGIN_DECLS
 extern int	    dsbexec_error(void);
 extern int	    dsbexec_wait(dsbexec_proc *);
+extern int	    dsbexec_write_history(void);
+extern int	    dsbexec_add_to_history(const char *);
+extern char	    **dsbexec_read_history(size_t *);
 extern const char   *dsbexec_strerror(void);
 extern dsbexec_proc *dsbexec_exec(const char *);
 __END_DECLS
