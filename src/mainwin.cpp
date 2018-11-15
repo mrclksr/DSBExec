@@ -118,12 +118,12 @@ MainWin::doExec()
 void
 MainWin::cbCancel()
 {
-	QCoreApplication::exit(-1);
+	QCoreApplication::exit(0);
 }
 
 void MainWin::closeEvent(QCloseEvent * /* unused */)
 {
-	QCoreApplication::exit(-1);
+	QCoreApplication::exit(0);
 }
 
 void MainWin::initAutoCompleter()
@@ -149,7 +149,9 @@ void MainWin::initAutoCompleter()
 }
 
 void MainWin::keyPressEvent(QKeyEvent *e) {
-	if (e->key() == Qt::Key_Up) {
+	if (e->key() == Qt::Key_Escape)
+		QCoreApplication::exit(0);
+	else if (e->key() == Qt::Key_Up) {
 		if (histCursor < history->count() - 1)
 			edit->setText(history->at(++histCursor));
 		e->ignore();
