@@ -26,7 +26,6 @@
 #include <QTextCodec>
 #include <QDir>
 #include <QStringList>
-#include <QString>
 
 #include "mainwin.h"
 #include "qt-helper/qt-helper.h"
@@ -39,37 +38,40 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
 	QIcon pic	    = qh_loadIcon("system-run", NULL);
 	rootCb		    = new QCheckBox(tr("Execute as root"));
 	edit	    	    = new QLineEdit(this);
+	statusMsg	    = new QLabel(this);
+	statusBar	    = new QStatusBar(this);
 	QLabel	    *icon   = new QLabel(this);	      
-
 	QLabel	    *label  = new QLabel(prompt);
 	QPushButton *ok	    = new QPushButton(okIcon, tr("&Ok"));
 	QPushButton *cancel = new QPushButton(cancelIcon, tr("&Cancel"));
-	QVBoxLayout *evbox  = new QVBoxLayout;
 	QVBoxLayout *vbox   = new QVBoxLayout;
+	QVBoxLayout *evbox  = new QVBoxLayout;
 	QHBoxLayout *bbox   = new QHBoxLayout;
 	QHBoxLayout *hbox   = new QHBoxLayout;
 	QWidget *container  = new QWidget(this);
 
 	icon->setPixmap(pic.pixmap(64));
+	statusBar->addWidget(statusMsg);
 	label->setStyleSheet("font-weight: bold;");
 
 	bbox->addWidget(ok,     1, Qt::AlignRight);
         bbox->addWidget(cancel, 0, Qt::AlignRight);
 
+	hbox->addWidget(icon,   0, Qt::AlignLeft);
+	vbox->addLayout(hbox);
+
 	evbox->addWidget(label, 1, Qt::AlignLeft);
 	evbox->addWidget(edit);
 
-	hbox->addWidget(icon, 0, Qt::AlignLeft);
 	hbox->addLayout(evbox);
 
-	vbox->addLayout(hbox);
 	vbox->addWidget(rootCb);
 	vbox->addLayout(bbox);
+	vbox->addWidget(statusBar);
 	container->setLayout(vbox);
 	setCentralWidget(container);
 
 	setMinimumWidth(500);
-	setMaximumWidth(500);
 	setWindowIcon(pic);
 	setWindowTitle(tr("DSBExec - Execute command"));
 	show();
@@ -78,47 +80,39 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
 	connect(ok, SIGNAL(clicked()), this, SLOT(doExec()));
 	connect(edit, SIGNAL(returnPressed()), this, SLOT(doExec()));
 	connect(cancel, SIGNAL(clicked()), this, SLOT(cbCancel()));
+	connect(edit, SIGNAL(textChanged(const QString &)), this,
+	    SLOT(resetStatusBar(const QString &)));
 	initAutoCompleter();
 	initHistory();
 }
 
 void
+MainWin::resetStatusBar(const QString & /*unused*/)
+{
+	statusMsg->setText("");
+}
+
+void
 MainWin::doExec()
 {
-	char	   *str;
 	QTextCodec *codec = QTextCodec::codecForLocale();
-	QByteArray encstr = codec->fromUnicode(edit->text());
-	const char *input = encstr.data();
-	
-	if (*input == '\0')
-		return;
-	if (dsbexec_add_to_history(input) == -1)
-		qh_errx(NULL, EXIT_FAILURE, "%s", dsbexec_strerror());
-	if (dsbexec_write_history() == -1)
-		qh_errx(NULL, EXIT_FAILURE, "%s", dsbexec_strerror());
-	addToHistory(edit->text());
+	QByteArray enccmd = codec->fromUnicode(edit->text());
 
-	if ((cmdstr = str = strdup(input)) == NULL)
-		qh_err(this, EXIT_FAILURE, "strdup()");
+	if (*enccmd.data() == '\0')
+		return;
+	addToHistory(edit->text());
 	if (rootCb->checkState() == Qt::Checked) {
-		encstr = codec->fromUnicode(
-		    tr("%s -m \"Execute command '%s' as root\" \"%s\""));
-		char *msg = strdup(encstr.data());
-		if (msg == NULL)
-			qh_err(this, EXIT_FAILURE, "strdup()");
-		size_t len = strlen(msg) + 2 * strlen(str) +
-			     strlen(PATH_DSBSU) + 1;
-		if ((cmdstr = (char *)malloc(len)) == NULL)
-			qh_err(this, EXIT_FAILURE, "malloc()");
-		(void)snprintf(cmdstr, len, msg, PATH_DSBSU, str, str);
-		free(msg); free(str);
-		proc = dsbexec_exec(cmdstr);
+		QByteArray encmsg = codec->fromUnicode(
+		    tr("Execute command '%1' as root").arg(enccmd.data()));
+		dsbexec_exec(true, enccmd.data(), encmsg.data());
 	} else
-		proc = dsbexec_exec(cmdstr);
-	close();
-	if (proc == NULL)
-		QCoreApplication::exit(1);
-	QCoreApplication::exit(0);
+		dsbexec_exec(false, enccmd.data(), NULL);
+	if ((dsbexec_error() & DSBEXEC_ENOENT))
+		statusMsg->setText(tr("Command not found"));
+	else if ((dsbexec_error() & DSBEXEC_EUNTERM))
+		statusMsg->setText(tr("Unterminated quoted string"));
+	else
+		qh_err(this, EXIT_FAILURE, "dsbexec_exec()");
 }
 
 void
