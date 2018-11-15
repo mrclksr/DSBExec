@@ -26,6 +26,7 @@
 #include <errno.h>
 #define _WITH_GETLINE
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -43,6 +44,7 @@
 #include "libdsbexec.h"
 
 #define ERRBUFSZ	1024
+#define MAXARGS		256
 #define MAXHISTSIZE	100
 #define FATAL_SYSERR	(DSBEXEC_ERR_SYS | DSBEXEC_ERR_FATAL)
 #define PATH_HISTORY	".dsbexec.history"
@@ -52,12 +54,7 @@
 	return (ret); \
 } while (0)
 
-struct dsbexec_proc_s {
-	int	 pid;
-	sigset_t sset;	     /* Saved signal set. */
-};
-
-static int  wait_on_proc(dsbexec_proc *);
+static int  strtoargv(const char *, char **, size_t, size_t *);
 static void set_error(int, bool, const char *, ...);
 
 static int    _error;
@@ -77,58 +74,42 @@ dsbexec_error()
 	return (_error);
 }
 
-dsbexec_proc *
-dsbexec_exec(const char *cmd)
-{
-	sigset_t     sset;
-	dsbexec_proc *proc;
-
-	if ((proc = malloc(sizeof(dsbexec_proc))) == NULL)
-		ERROR(NULL, FATAL_SYSERR, false, "malloc()");
-	proc->pid = -1;
-
-	(void)sigemptyset(&sset);
-        (void)sigaddset(&sset, SIGCHLD);
-        (void)sigaddset(&sset, SIGINT);
-        (void)sigaddset(&sset, SIGQUIT);
-	(void)sigprocmask(SIG_BLOCK, &sset, &proc->sset);
-	if ((proc->pid = fork()) == -1) {
-		set_error(FATAL_SYSERR, false, "fork()");
-		goto error;
-	} else if (proc->pid == 0) {
-		(void)sigprocmask(SIG_SETMASK, &proc->sset, NULL);
-		(void)execl(_PATH_BSHELL, _PATH_BSHELL, "-c", cmd, NULL);
-		_exit(DSBEXEC_EEXECSH + errno);
-	}
-	return (proc);
-
-error:
-	(void)sigprocmask(SIG_SETMASK, &proc->sset, NULL);
-	free(proc);
-
-	return (NULL);
-}
-
 int
-dsbexec_wait(dsbexec_proc *proc)
+dsbexec_exec(bool sudo, const char *cmd, const char *msgstr)
 {
-	int ret = 0;
-	struct sigaction ign, saint, saquit;
-
-	ign.sa_flags   = 0;
-	ign.sa_handler = SIG_IGN;
-	(void)sigemptyset(&ign.sa_mask);
-	(void)sigaction(SIGINT, &ign, &saint);
-	(void)sigaction(SIGQUIT, &ign, &saquit);
-
-	/* Wait for the child to terminiate. */
-	if (wait_on_proc(proc) != 0)
-		ret = -1;
-	(void)sigaction(SIGINT, &saint, NULL);
-	(void)sigaction(SIGQUIT, &saquit, NULL);
-	(void)sigprocmask(SIG_SETMASK, &proc->sset, NULL);
-
-	return (ret);
+	int    eflags;
+	char   *argv[MAXARGS];
+	size_t i, hs, argc;
+	
+	if (histsize == 0) {
+		if (dsbexec_read_history(&hs) == NULL && _error != 0)
+			ERROR(-1, 0, true, "dsbexec_read_history()");
+	}
+	if (sudo) {
+		i = 1;
+		argv[0] = PATH_DSBSU;
+		if (msgstr != NULL && *msgstr != '\0') {
+			i += 2;
+			argv[1] = "-m";
+			argv[2] = (char *)msgstr;
+		}
+	} else
+		i = 0;
+	if (strtoargv(cmd, argv + i, MAXARGS - i - 1, &argc) == -1)
+		return (-1);
+	argv[argc + i] = NULL;
+	if (dsbexec_add_to_history(argv[i]) == -1)
+		return (-1);
+	if (dsbexec_write_history() == -1)
+		return (-1);
+	execvp(argv[0], argv);
+	eflags = DSBEXEC_ERR_SYS | DSBEXEC_EEXECCMD;
+	if (errno == ENOENT)
+		eflags |= DSBEXEC_ENOENT;
+	set_error(eflags, false, "execvp(%s)", argv[i]);
+	for (; i < argc; i++)
+		free(argv[i]);
+	return (-1);
 }
 
 char **
@@ -190,8 +171,9 @@ dsbexec_add_to_history(const char *cmd)
 int
 dsbexec_write_history()
 {
-	char	      histpath[PATH_MAX];
-	FILE	      *fp;
+	int	      fd;
+	char	      histpath[PATH_MAX], tmpath[PATH_MAX];
+	FILE	      *tmp;
 	size_t	      i;
 	struct passwd *pw;
 
@@ -200,14 +182,97 @@ dsbexec_write_history()
 		ERROR(-1, FATAL_SYSERR, false, "getpwuid()");
 	(void)snprintf(histpath, sizeof(histpath), "%s/%s", pw->pw_dir,
 	    PATH_HISTORY);
+	(void)snprintf(tmpath, sizeof(tmpath), "%s/%s.XXXXX", pw->pw_dir,
+	    PATH_HISTORY);
 	endpwent();
-	if ((fp = fopen(histpath, "w+")) == NULL)
-		ERROR(-1, FATAL_SYSERR, false, "fopen(%s)", histpath);
+	if ((fd = mkstemp(tmpath)) == -1)
+		ERROR(-1, FATAL_SYSERR, false, "mkstemp()");
+	if ((tmp = fdopen(fd, "w")) == NULL)
+		ERROR(-1, FATAL_SYSERR, false, "fdopen()");
 	for (i = 0; i < histsize; i++)
-		(void)fprintf(fp, "%s\n", history[i]);
-	fclose(fp);
+		(void)fprintf(tmp, "%s\n", history[i]);
+	(void)fclose(tmp);
+	if (rename(tmpath, histpath) == -1) {
+		set_error(FATAL_SYSERR, false, "rename(%s, %s)", tmpath,
+		    histpath);
+		(void)remove(tmpath);
+		return (-1);
+	}
+	return (0);
+}
+
+static int
+strtoargv(const char *str, char **argv, size_t argvsz, size_t *argc)
+{
+	int   squote, dquote, esc;
+	size_t n;
+	char *buf, *p;
+
+	if ((p = buf = strdup(str)) == NULL)
+		ERROR(-1, FATAL_SYSERR, false, "strdup()");
+	squote = dquote = n = esc = 0;
+	for (; n < argvsz && *str != '\0'; str++) {
+		if (*str == '"') {
+			if (esc) {
+				*p++ = *str;
+				esc ^= 1;
+			} else if (squote)
+				*p++ = *str;
+			else
+				dquote ^= 1;
+		} else if (*str == '\'') {
+			if (esc) {
+				*p++ = *str;
+				esc ^= 1;
+			} else
+				squote ^= 1;
+		} else if (*str == '\\') {
+			if (squote) {
+				*p++ = *str;
+			} else if (esc) {
+				*p++ = *str;
+				esc ^= 1;
+			} else
+				esc ^= 1;
+		} else if (isspace(*str)) {
+			if (esc) {
+				*p++ = *str;
+				esc ^= 1;
+			} else if (dquote || squote) {
+				*p++ = *str;
+			} else {
+				*p = '\0';
+				if (dquote || squote)
+					goto err_unterm;
+				while (isspace(str[1]))
+					str++;
+				argv[n++] = strdup(buf);
+				if (argv[n - 1] == NULL) {
+					ERROR(-1, FATAL_SYSERR, false,
+					    "strdup()");
+				}
+				p = buf;
+			}
+		} else
+			*p++ = *str;
+	}
+	*p = '\0';
+	if (dquote || squote)
+		goto err_unterm;
+	if (p != buf) {
+		argv[n++] = strdup(buf);
+		if (argv[n - 1] == NULL)
+			ERROR(-1, FATAL_SYSERR, false, "strdup()");
+	}
+	free(buf);
+	*argc = n;
 
 	return (0);
+err_unterm:
+	while (n-- > 0)
+		free(argv[n]);
+	free(buf);
+	ERROR(-1, DSBEXEC_EUNTERM, false, "Unterminated quoted string");
 }
 
 static void
@@ -245,37 +310,11 @@ set_error(int error, bool prepend, const char *fmt, ...)
 		}
 	}
 	if ((error & DSBEXEC_ERR_SYS) && _errno != 0) {
+		_error += _errno;
 		len = strlen(errmsg);
 		(void)snprintf(errmsg + len, sizeof(errmsg) - len,
 		    ": %s", strerror(_errno));
 		errno = 0;
 	}
-}
-
-static int
-wait_on_proc(dsbexec_proc *proc)
-{
-	siginfo_t si;
-
-	while (waitid(P_PID, proc->pid, &si, WEXITED | WSTOPPED) == -1) {
-		if (errno != EINTR) {
-			set_error(FATAL_SYSERR, false, "waitid()");
-			return (-1);
-		}
-	}
-	if (si.si_status & DSBEXEC_EEXECSH) {
-		/* Failed to execute /bin/sh */
-		errno = si.si_status & 0x7f;
-		set_error(DSBEXEC_EEXECSH | DSBEXEC_ERR_SYS, false, "exec()");
-		return (1);
-	} else if (si.si_status & DSBEXEC_ERR_SYS) {
-		errno = si.si_status & 0x7f;
-		set_error(FATAL_SYSERR, false, "Error");
-		return (1);
-	} else if (si.si_status == 127) {
-		set_error(DSBEXEC_EEXECCMD, false, "Command not found");
-		return (1);
-	}
-	return (0);
 }
 
