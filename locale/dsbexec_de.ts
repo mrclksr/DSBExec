@@ -4,47 +4,44 @@
 <context>
     <name>MainWin</name>
     <message>
-        <location filename="../src/mainwin.cpp" line="31"/>
+        <location filename="../src/mainwin.cpp" line="34"/>
         <source>Command:</source>
         <translation>Befehl:</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="36"/>
+        <location filename="../src/mainwin.cpp" line="39"/>
         <source>Execute as root</source>
         <translation>Als root ausführen</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="41"/>
+        <location filename="../src/mainwin.cpp" line="45"/>
         <source>&amp;Ok</source>
         <translation>&amp;Ok</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="42"/>
+        <location filename="../src/mainwin.cpp" line="46"/>
         <source>&amp;Cancel</source>
         <translation>&amp;Abbrechen</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="70"/>
+        <location filename="../src/mainwin.cpp" line="76"/>
         <source>DSBExec - Execute command</source>
         <translation>DSBExec - Befehl ausführen</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="85"/>
-        <source>%1 -m &quot;Execute command &apos;%2&apos; as root&quot; %3</source>
-        <translation>%1 -m &quot;Befehl &apos;%2&apos; als root ausführen&quot; %3</translation>
-    </message>
-</context>
-<context>
-    <name>QObject</name>
-    <message>
-        <location filename="../src/main.cpp" line="50"/>
-        <source>Failed to execute command &apos;%1&apos;</source>
-        <translation>Konnte &apos;%1&apos; nicht ausführen</translation>
+        <location filename="../src/mainwin.cpp" line="106"/>
+        <source>Execute command &apos;%1&apos; as root</source>
+        <translation>Befehl &apos;%1&apos; als root ausführen</translation>
     </message>
     <message>
-        <location filename="../src/main.cpp" line="55"/>
-        <source>Failed to execute shell</source>
-        <translation>Konnte Shell nicht ausführen</translation>
+        <location filename="../src/mainwin.cpp" line="111"/>
+        <source>Command not found</source>
+        <translation>Befehl nicht gefunden</translation>
+    </message>
+    <message>
+        <location filename="../src/mainwin.cpp" line="113"/>
+        <source>Unterminated quoted string</source>
+        <translation>Fehlende Anführungszeichen</translation>
     </message>
 </context>
 </TS>
