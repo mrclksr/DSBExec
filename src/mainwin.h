@@ -36,6 +36,7 @@
 #include <QMainWindow>
 #include <QCompleter>
 #include <QKeyEvent>
+
 #include "libdsbexec.h"
 
 class MainWin : public QMainWindow {
@@ -45,18 +46,18 @@ public:
 private slots:
 	void cbCancel();
 	void doExec();
+        void resetStatusBar(const QString &);
 	void closeEvent(QCloseEvent *);
 	void initAutoCompleter();
 	void keyPressEvent(QKeyEvent *e);
 	void initHistory();
 	void addToHistory(QString s);
-public:
-	char	     *cmdstr;
-	dsbexec_proc *proc = 0;
 private:
-	int	     histCursor = -1;
-	QLineEdit    *edit;
-	QCheckBox    *rootCb;
-	QStringList  *history;
+	int	    histCursor = -1;
+	QLabel	    *statusMsg;
+	QStatusBar  *statusBar;
+	QLineEdit   *edit;
+	QCheckBox   *rootCb;
+	QStringList *history;
 };
 
