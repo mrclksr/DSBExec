@@ -24,10 +24,6 @@
 
 #include <QLocale>
 #include <QTranslator>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <err.h>
 
 #include "qt-helper/qt-helper.h"
 #include "mainwin.h"
@@ -43,24 +39,6 @@ main(int argc, char *argv[])
 		app.installTranslator(&translator);
 	MainWin w;
 
-	if (app.exec() != -1) {
-		if (w.proc != NULL && dsbexec_wait(w.proc) != 0) {
-			if (dsbexec_error() == DSBEXEC_EEXECCMD) {
-				qh_errx(NULL, EXIT_FAILURE,
-				    QObject::tr(
-					"Failed to execute command '%1'"
-				    ).arg(w.cmdstr));
-			} else if (dsbexec_error() == DSBEXEC_EEXECSH) {
-				qh_errx(NULL, EXIT_FAILURE,
-				    QObject::tr("Failed to execute shell"));
-			} else {
-				qh_errx(NULL, EXIT_FAILURE, "%s",
-				    dsbexec_strerror());
-			}
-		} else if (w.proc == NULL)
-			qh_errx(NULL, EXIT_FAILURE, "%s", dsbexec_strerror());
-		return (EXIT_SUCCESS);
-	}
-	return (EXIT_FAILURE);
+	return (app.exec());
 }
 
