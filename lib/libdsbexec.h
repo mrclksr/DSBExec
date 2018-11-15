@@ -24,23 +24,27 @@
 
 #ifndef _DSBEXEC_H_
 #define _DSBEXEC_H_
+#include <sys/types.h>
 #include <sys/cdefs.h>
+#include <stdbool.h>
 
-#define DSBEXEC_ERR_FATAL   (1 << 0)
-#define DSBEXEC_EEXECCMD    (1 << 1)
-#define DSBEXEC_EEXECSH	    (1 << 7)
-#define DSBEXEC_ERR_SYS	    (1 << 8)
+#ifndef PATH_DSBSU
+# define PATH_DSBSU	  "dsbsu"
+#endif
 
-typedef struct dsbexec_proc_s dsbexec_proc;
+#define DSBEXEC_ERR_FATAL (1 <<  7)
+#define DSBEXEC_EEXECCMD  (1 <<  8)
+#define DSBEXEC_ERR_SYS	  (1 <<  9)
+#define DSBEXEC_EUNTERM	  (1 << 10)
+#define DSBEXEC_ENOENT	  (1 << 11)
 
 __BEGIN_DECLS
-extern int	    dsbexec_error(void);
-extern int	    dsbexec_wait(dsbexec_proc *);
-extern int	    dsbexec_write_history(void);
-extern int	    dsbexec_add_to_history(const char *);
-extern char	    **dsbexec_read_history(size_t *);
-extern const char   *dsbexec_strerror(void);
-extern dsbexec_proc *dsbexec_exec(const char *);
+extern int	  dsbexec_error(void);
+extern int	  dsbexec_write_history(void);
+extern int	  dsbexec_add_to_history(const char *);
+extern int	  dsbexec_exec(bool, const char *, const char *);
+extern char	  **dsbexec_read_history(size_t *);
+extern const char *dsbexec_strerror(void);
 __END_DECLS
 
 #endif	/* !_DSBEXEC_H_ */
