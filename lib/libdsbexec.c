@@ -204,9 +204,9 @@ dsbexec_write_history()
 static int
 strtoargv(const char *str, char **argv, size_t argvsz, size_t *argc)
 {
-	int   squote, dquote, esc;
+	int    squote, dquote, esc;
+	char   *buf, *p;
 	size_t n;
-	char *buf, *p;
 
 	if ((p = buf = strdup(str)) == NULL)
 		ERROR(-1, FATAL_SYSERR, false, "strdup()");
