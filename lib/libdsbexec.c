@@ -45,7 +45,7 @@
 
 #define ERRBUFSZ	1024
 #define MAXARGS		256
-#define MAXHISTSIZE	100
+#define MAXHISTSIZE	25
 #define FATAL_SYSERR	(DSBEXEC_ERR_SYS | DSBEXEC_ERR_FATAL)
 #define PATH_HISTORY	".dsbexec.history"
 
