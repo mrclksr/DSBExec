@@ -1,0 +1,27 @@
+.Dd $Mdocdate$
+.Dt DSBExec
+.Sh ABOUT
+.Nm DSBExec
+is a graphical (Qt) tool to execute programs. It supports auto completion,
+a command history, and allows running programs as root using
+.Em dsbsu .
+.Sh INSTALLATION
+.Ss Dependencies
+.Nm
+depends on
+.Em devel/qt5-buildtools , devel/qt5-core , devel/qt5-linguisttools ,
+.Em devel/qt5-qmake , x11-toolkits/qt5-gui ,
+and
+.Em x11-toolkits/qt5-widgets
+
+.Ss Getting the source code
+.Bd -literal
+# git clone https://github.com/mrclksr/DSBExec.git
+.Ss Building and installation
+.Bd -literal
+# cd DSBExec && qmake
+# make && make install
+.Sh FILES
+.Bl -tag
+.It Em ~/.dsbexec.history
+
