@@ -210,6 +210,8 @@ strtoargv(const char *str, char **argv, size_t argvsz, size_t *argc)
 
 	if ((p = buf = strdup(str)) == NULL)
 		ERROR(-1, FATAL_SYSERR, false, "strdup()");
+	while (isspace(*str))
+		str++;
 	squote = dquote = n = esc = 0;
 	for (; n < argvsz && *str != '\0'; str++) {
 		if (*str == '"') {
