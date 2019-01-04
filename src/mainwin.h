@@ -21,21 +21,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include <QDialog>
 #include <QLabel>
-#include <QFormLayout>
 #include <QLineEdit>
 #include <QCheckBox>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QPushButton>
 #include <QStatusBar>
 #include <QBoxLayout>
 #include <QWidget>
 #include <QMainWindow>
 #include <QCompleter>
 #include <QKeyEvent>
+#include <QSharedPointer>
+#include <QStringList>
 
 #include "libdsbexec.h"
 
@@ -44,13 +42,13 @@ class MainWin : public QMainWindow {
 public:
 	MainWin(QWidget *parent = 0);
 private slots:
-	void cbCancel();
 	void doExec();
         void resetStatusBar(const QString &);
 	void closeEvent(QCloseEvent *);
-	void initAutoCompleter();
 	void keyPressEvent(QKeyEvent *e);
-	void initHistory();
+private:
+	void initHistory(void);
+	void initAutoCompleter(void);
 	void addToHistory(QString s);
 private:
 	int	    histCursor = -1;
@@ -60,4 +58,3 @@ private:
 	QCheckBox   *rootCb;
 	QStringList *history;
 };
-

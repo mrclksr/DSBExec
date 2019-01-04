@@ -25,37 +25,26 @@
 #include <QDesktopWidget>
 #include <QTextCodec>
 #include <QDir>
-#include <QStringList>
-
 #include "mainwin.h"
 #include "qt-helper/qt-helper.h"
 
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
+	edit	    	    = new QLineEdit(this);
 	QString prompt	    = QString(tr("Command:"));
-	QIcon okIcon	    = qh_loadStockIcon(QStyle::SP_DialogOkButton, 0);
-	QIcon cancelIcon    = qh_loadStockIcon(QStyle::SP_DialogCancelButton,
-					       NULL);
 	QIcon pic	    = qh_loadIcon("system-run", NULL);
 	rootCb		    = new QCheckBox(tr("Execute as root"));
-	edit	    	    = new QLineEdit(this);
 	statusMsg	    = new QLabel(this);
 	statusBar	    = new QStatusBar(this);
 	QLabel	    *icon   = new QLabel(this);	      
 	QLabel	    *label  = new QLabel(prompt);
-	QPushButton *ok	    = new QPushButton(okIcon, tr("&Ok"));
-	QPushButton *cancel = new QPushButton(cancelIcon, tr("&Cancel"));
 	QVBoxLayout *vbox   = new QVBoxLayout;
 	QVBoxLayout *evbox  = new QVBoxLayout;
-	QHBoxLayout *bbox   = new QHBoxLayout;
 	QHBoxLayout *hbox   = new QHBoxLayout;
 	QWidget *container  = new QWidget(this);
 
 	icon->setPixmap(pic.pixmap(64));
 	statusBar->addWidget(statusMsg);
 	label->setStyleSheet("font-weight: bold;");
-
-	bbox->addWidget(ok,     1, Qt::AlignRight);
-        bbox->addWidget(cancel, 0, Qt::AlignRight);
 
 	hbox->addWidget(icon,   0, Qt::AlignLeft);
 	vbox->addLayout(hbox);
@@ -66,24 +55,20 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
 	hbox->addLayout(evbox);
 
 	vbox->addWidget(rootCb);
-	vbox->addLayout(bbox);
 	vbox->addWidget(statusBar);
 	container->setLayout(vbox);
 	setCentralWidget(container);
 
 	setMinimumWidth(500);
-	setWindowIcon(pic);
-	setWindowTitle(tr("DSBExec - Execute command"));
+	setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
 	show();
 	setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter,
 	    size(), qApp->desktop()->availableGeometry()));
-	connect(ok, SIGNAL(clicked()), this, SLOT(doExec()));
 	connect(edit, SIGNAL(returnPressed()), this, SLOT(doExec()));
-	connect(cancel, SIGNAL(clicked()), this, SLOT(cbCancel()));
 	connect(edit, SIGNAL(textChanged(const QString &)), this,
 	    SLOT(resetStatusBar(const QString &)));
-	initAutoCompleter();
 	initHistory();
+	initAutoCompleter();
 }
 
 void
@@ -115,12 +100,6 @@ MainWin::doExec()
 		qh_err(this, EXIT_FAILURE, "dsbexec_exec()");
 }
 
-void
-MainWin::cbCancel()
-{
-	QCoreApplication::exit(0);
-}
-
 void MainWin::closeEvent(QCloseEvent * /* unused */)
 {
 	QCoreApplication::exit(0);
@@ -141,11 +120,10 @@ void MainWin::initAutoCompleter()
 		list.sort();
 	}
 	free(paths);
-
-	QCompleter *autoCompleter = new QCompleter(list, this);
-	autoCompleter->setCaseSensitivity(Qt::CaseSensitive);
-	autoCompleter->setCompletionMode(QCompleter::PopupCompletion);
-	edit->setCompleter(autoCompleter);
+	QCompleter *completer = new QCompleter(list, this);
+	completer->setCaseSensitivity(Qt::CaseSensitive);
+	completer->setCompletionMode(QCompleter::PopupCompletion);
+	edit->setCompleter(completer);
 }
 
 void MainWin::keyPressEvent(QKeyEvent *e) {
