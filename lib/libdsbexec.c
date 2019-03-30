@@ -95,11 +95,11 @@ dsbexec_exec(bool sudo, const char *cmd, const char *msgstr)
 		}
 	} else
 		i = 0;
+	if (dsbexec_add_to_history(cmd) == -1)
+		return (-1);
 	if (strtoargv(cmd, argv + i, MAXARGS - i - 1, &argc) == -1)
 		return (-1);
 	argv[argc + i] = NULL;
-	if (dsbexec_add_to_history(argv[i]) == -1)
-		return (-1);
 	if (dsbexec_write_history() == -1)
 		return (-1);
 	execvp(argv[0], argv);
