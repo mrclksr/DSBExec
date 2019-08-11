@@ -32,7 +32,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
 	edit	    	    = new QLineEdit(this);
 	QString prompt	    = QString(tr("Command:"));
 	QIcon pic	    = qh_loadIcon("system-run", NULL);
-	rootCb		    = new QCheckBox(tr("Execute as root"));
+	rootCb		    = new QCheckBox(tr("Execute as &root"));
 	statusMsg	    = new QLabel(this);
 	statusBar	    = new QStatusBar(this);
 	QLabel	    *icon   = new QLabel(this);	      
@@ -67,8 +67,15 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
 	connect(edit, SIGNAL(returnPressed()), this, SLOT(doExec()));
 	connect(edit, SIGNAL(textChanged(const QString &)), this,
 	    SLOT(resetStatusBar(const QString &)));
+	connect(rootCb, SIGNAL(clicked()), this, SLOT(rootCbClicked()));
 	initHistory();
 	initAutoCompleter();
+}
+
+void
+MainWin::rootCbClicked()
+{
+	edit->setFocus();
 }
 
 void

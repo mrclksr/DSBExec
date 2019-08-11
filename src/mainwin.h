@@ -46,6 +46,7 @@ private slots:
         void resetStatusBar(const QString &);
 	void closeEvent(QCloseEvent *);
 	void keyPressEvent(QKeyEvent *e);
+	void rootCbClicked(void);
 private:
 	void initHistory(void);
 	void initAutoCompleter(void);
