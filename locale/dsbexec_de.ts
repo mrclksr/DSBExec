@@ -4,42 +4,43 @@
 <context>
     <name>MainWin</name>
     <message>
-        <location filename="../src/mainwin.cpp" line="34"/>
+        <location filename="../src/mainwin.cpp" line="33"/>
         <source>Command:</source>
         <translation>Befehl:</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="39"/>
         <source>Execute as root</source>
-        <translation>Als root ausführen</translation>
+        <translation type="vanished">Als root ausführen</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="45"/>
         <source>&amp;Ok</source>
-        <translation>&amp;Ok</translation>
+        <translation type="vanished">&amp;Ok</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="46"/>
         <source>&amp;Cancel</source>
-        <translation>&amp;Abbrechen</translation>
+        <translation type="vanished">&amp;Abbrechen</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="76"/>
         <source>DSBExec - Execute command</source>
-        <translation>DSBExec - Befehl ausführen</translation>
+        <translation type="vanished">DSBExec - Befehl ausführen</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="106"/>
+        <location filename="../src/mainwin.cpp" line="35"/>
+        <source>Execute as &amp;root</source>
+        <translation>Als &amp;Root ausführen</translation>
+    </message>
+    <message>
+        <location filename="../src/mainwin.cpp" line="98"/>
         <source>Execute command &apos;%1&apos; as root</source>
         <translation>Befehl &apos;%1&apos; als root ausführen</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="111"/>
+        <location filename="../src/mainwin.cpp" line="103"/>
         <source>Command not found</source>
         <translation>Befehl nicht gefunden</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="113"/>
+        <location filename="../src/mainwin.cpp" line="105"/>
         <source>Unterminated quoted string</source>
         <translation>Fehlende Anführungszeichen</translation>
     </message>
