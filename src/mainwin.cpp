@@ -43,6 +43,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
 	QWidget *container  = new QWidget(this);
 
 	icon->setPixmap(pic.pixmap(64));
+	setWindowIcon(pic);
 	statusBar->addWidget(statusMsg);
 	label->setStyleSheet("font-weight: bold;");
 
