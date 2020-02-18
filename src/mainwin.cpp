@@ -25,6 +25,7 @@
 #include <QDesktopWidget>
 #include <QTextCodec>
 #include <QDir>
+#include <QScreen>
 #include "mainwin.h"
 #include "qt-helper/qt-helper.h"
 
@@ -44,7 +45,6 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
 
 	icon->setPixmap(pic.pixmap(64));
 	setWindowIcon(pic);
-	statusBar->addWidget(statusMsg);
 	label->setStyleSheet("font-weight: bold;");
 
 	hbox->addWidget(icon,   0, Qt::AlignLeft);
@@ -52,11 +52,10 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
 
 	evbox->addWidget(label, 1, Qt::AlignLeft);
 	evbox->addWidget(edit);
-
+	evbox->addWidget(statusMsg);
 	hbox->addLayout(evbox);
 
 	vbox->addWidget(rootCb);
-	vbox->addWidget(statusBar);
 	container->setLayout(vbox);
 	setCentralWidget(container);
 
@@ -64,7 +63,7 @@ MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
 	setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
 	show();
 	setGeometry(QStyle::alignedRect(Qt::LeftToRight, Qt::AlignCenter,
-	    size(), qApp->desktop()->availableGeometry()));
+	    size(), qApp->primaryScreen()->geometry()));
 	connect(edit, SIGNAL(returnPressed()), this, SLOT(doExec()));
 	connect(edit, SIGNAL(textChanged(const QString &)), this,
 	    SLOT(resetStatusBar(const QString &)));
