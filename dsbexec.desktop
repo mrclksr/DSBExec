@@ -1,5 +1,6 @@
 [Desktop Entry]
-Name=DSBExec
+Name=Run command
+Name[de]=Befehl ausführen
 Exec=dsbexec
 Icon=system-run
 Terminal=false
