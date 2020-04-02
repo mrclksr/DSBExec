@@ -4,7 +4,7 @@
 <context>
     <name>MainWin</name>
     <message>
-        <location filename="../src/mainwin.cpp" line="33"/>
+        <location filename="../src/mainwin.cpp" line="34"/>
         <source>Command:</source>
         <translation>Befehl:</translation>
     </message>
@@ -25,7 +25,7 @@
         <translation type="vanished">DSBExec - Befehl ausführen</translation>
     </message>
     <message>
-        <location filename="../src/mainwin.cpp" line="35"/>
+        <location filename="../src/mainwin.cpp" line="36"/>
         <source>Execute as &amp;root</source>
         <translation>Als &amp;Root ausführen</translation>
     </message>
