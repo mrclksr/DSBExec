@@ -31,6 +31,8 @@
 int
 main(int argc, char *argv[])
 {
+	if (dsbexec_running())
+		return (EXIT_SUCCESS);
 	QApplication app(argc, argv);
 	QTranslator translator;
 

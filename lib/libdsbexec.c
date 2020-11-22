@@ -33,6 +33,7 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <pwd.h>
 #include <limits.h>
 #include <libutil.h>
@@ -40,6 +41,7 @@
 #include <paths.h>
 #include <unistd.h>
 #include <signal.h>
+#include <fcntl.h>
 
 #include "libdsbexec.h"
 
@@ -48,6 +50,8 @@
 #define MAXHISTSIZE	25
 #define FATAL_SYSERR	(DSBEXEC_ERR_SYS | DSBEXEC_ERR_FATAL)
 #define PATH_HISTORY	".dsbexec.history"
+#define PATH_FIFO	"." PROGRAM ".lock"
+
 
 #define ERROR(ret, error, prepend, fmt, ...) do { \
 	set_error(error, prepend, fmt, ##__VA_ARGS__); \
@@ -60,6 +64,7 @@ static void set_error(int, bool, const char *, ...);
 static int    _error;
 static char   errmsg[ERRBUFSZ];
 static char   *history[MAXHISTSIZE];
+static char   path_fifo[PATH_MAX];
 static size_t histsize;
 
 const char *
@@ -318,5 +323,32 @@ set_error(int error, bool prepend, const char *fmt, ...)
 		    ": %s", strerror(_errno));
 		errno = 0;
 	}
+}
+
+bool
+dsbexec_running()
+{
+	int	       fifo;
+	struct passwd *pw;
+
+	if ((pw = getpwuid(getuid())) == NULL)
+		err(EXIT_FAILURE, "getpwuid()");
+	endpwent();
+	(void)snprintf(path_fifo, sizeof(path_fifo), "%s/%s", pw->pw_dir,
+	    PATH_FIFO);
+	endpwent();
+	if (mkfifo(path_fifo, S_IWUSR | S_IRUSR) == -1) {
+		if (errno != EEXIST)
+			warn("mkfifo(%s)", path_fifo);
+	} else
+		(void)chmod(path_fifo, S_IRUSR | S_IWUSR);
+	if ((fifo = open(path_fifo, O_WRONLY | O_NONBLOCK)) != -1) {
+		/* Already running */
+		(void)close(fifo);
+		return (true);
+	}
+	if ((fifo = open(path_fifo, O_RDWR | O_NONBLOCK | O_CLOEXEC)) == -1)
+		warn("open(%s)", path_fifo);
+	return (false);
 }
 

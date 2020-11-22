@@ -43,6 +43,7 @@ extern int	  dsbexec_error(void);
 extern int	  dsbexec_write_history(void);
 extern int	  dsbexec_add_to_history(const char *);
 extern int	  dsbexec_exec(bool, const char *, const char *);
+extern bool	  dsbexec_running(void);
 extern char	  **dsbexec_read_history(size_t *);
 extern const char *dsbexec_strerror(void);
 __END_DECLS
