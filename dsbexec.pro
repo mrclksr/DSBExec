@@ -12,7 +12,8 @@ isEmpty(DATADIR) {
 TARGET	     = $${PROGRAM}
 APPSDIR	     = $${PREFIX}/share/applications
 INSTALLS     = target desktopfile locales
-TRANSLATIONS = locale/$${PROGRAM}_de.ts
+TRANSLATIONS = locale/$${PROGRAM}_de.ts \
+               locale/$${PROGRAM}_fr.ts
 LANGUAGES    = de
 TEMPLATE     = app
 QT	    += widgets
