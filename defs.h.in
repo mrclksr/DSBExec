@@ -1,0 +1,10 @@
+#ifndef DEFS_H
+#define DEFS_H
+#define PROGRAM "@CMAKE_PROJECT_NAME@"
+#define PROGRAM_VERSION "@PROGRAM_VERSION@"
+#define PATH_LOCALE "@DATADIR@"
+#define WEBSITE "@CMAKE_PROJECT_HOMEPAGE_URL@"
+#define PATH_DOC_URL "@PATH_DOC_URL@"
+#define PATH_DSBSU "@PATH_DSBSU@"
+#endif /* !DEFS_H */
+

@@ -22,8 +22,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <QDesktopWidget>
-#include <QTextCodec>
+#include <QStringConverter>
 #include <QDir>
 #include <QScreen>
 #include "mainwin.h"
@@ -87,15 +86,15 @@ MainWin::resetStatusBar(const QString & /*unused*/)
 void
 MainWin::doExec()
 {
-	QTextCodec *codec = QTextCodec::codecForLocale();
-	QByteArray enccmd = codec->fromUnicode(edit->text());
+	auto encoder{QStringEncoder(QStringEncoder::Utf8)};
+    QByteArray enccmd{encoder(edit->text())};
 
 	if (*enccmd.data() == '\0')
 		return;
 	addToHistory(edit->text());
 	if (rootCb->checkState() == Qt::Checked) {
-		QByteArray encmsg = codec->fromUnicode(
-		    tr("Execute command '%1' as root").arg(enccmd.data()));
+		QByteArray encmsg{encoder(
+		    tr("Execute command '%1' as root").arg(enccmd.data()))};
 		dsbexec_exec(true, enccmd.data(), encmsg.data());
 	} else
 		dsbexec_exec(false, enccmd.data(), NULL);

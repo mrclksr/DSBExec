@@ -24,7 +24,7 @@
 
 #include <QLocale>
 #include <QTranslator>
-
+#include "defs.h"
 #include "qt-helper/qt-helper.h"
 #include "mainwin.h"
 
@@ -37,7 +37,7 @@ main(int argc, char *argv[])
 	QTranslator translator;
 
 	if (translator.load(QLocale(), QLatin1String(PROGRAM),
-	    QLatin1String("_"), QLatin1String(LOCALE_PATH)))
+	    QLatin1String("_"), QLatin1String(PATH_LOCALE)))
 		app.installTranslator(&translator);
 	MainWin w;
 

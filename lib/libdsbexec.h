@@ -27,6 +27,7 @@
 #include <sys/types.h>
 #include <sys/cdefs.h>
 #include <stdbool.h>
+#include "defs.h"
 
 #ifndef PATH_DSBSU
 # define PATH_DSBSU	  "dsbsu"
