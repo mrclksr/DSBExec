@@ -1,5 +1,6 @@
 freebsd_instance:
-  image: freebsd-14-0-release-amd64
+  image_family: freebsd-14-0
+#  image: freebsd-14-0-release-amd64
 
 env:
   CIRRUS_CLONE_DEPTH: 1
@@ -7,7 +8,7 @@ env:
   
 task:
   # This name gets reported as a build status in GitHub
-  name: freebsd-14-0-release-amd64
+  name: freebsd-14-0-release
   auto_cancellation: false
   stateful: false
   setup_script:
