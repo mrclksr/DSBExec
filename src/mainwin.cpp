@@ -7,6 +7,7 @@
 
 #include "mainwin.h"
 
+#include <QApplication>
 #include <QDir>
 #include <QScreen>
 #include <QStringConverter>
@@ -16,7 +17,7 @@
 MainWin::MainWin(QWidget *parent) : QMainWindow(parent) {
   edit = new QLineEdit(this);
   QString prompt = QString(tr("Command:"));
-  QIcon pic = qh_loadIcon("system-run", NULL);
+  QIcon pic = qh::loadIcon(QStringList("system-run"));
   rootCb = new QCheckBox(tr("Execute as &root"));
   statusMsg = new QLabel(this);
   statusBar = new QStatusBar(this);
@@ -79,7 +80,7 @@ void MainWin::doExec() {
   else if ((dsbexec_error() & DSBEXEC_EUNTERM))
     statusMsg->setText(tr("Unterminated quoted string"));
   else
-    qh_err(this, EXIT_FAILURE, "dsbexec_exec()");
+    qh::err(this, EXIT_FAILURE, "dsbexec_exec()");
 }
 
 void MainWin::closeEvent(QCloseEvent * /* unused */) {
@@ -91,7 +92,7 @@ void MainWin::initAutoCompleter() {
   QStringList list;
 
   if ((p = getenv("PATH")) == NULL) return;
-  if ((paths = strdup(p)) == NULL) qh_err(this, EXIT_FAILURE, "strdup()");
+  if ((paths = strdup(p)) == NULL) qh::err(this, EXIT_FAILURE, "strdup()");
   for (p = paths; (p = strtok(p, ":")) != NULL; p = NULL) {
     QDir dir(p);
     list += dir.entryList(QStringList(), QDir::Files);
@@ -131,7 +132,7 @@ void MainWin::initHistory() {
 
   if ((hv = dsbexec_read_history(&size)) == NULL) {
     if (dsbexec_error() != 0)
-      qh_errx(NULL, EXIT_FAILURE, "%s", dsbexec_strerror());
+      qh::errx(nullptr, EXIT_FAILURE, dsbexec_strerror());
     return;
   }
   for (size_t i = 0; i < size; i++) {

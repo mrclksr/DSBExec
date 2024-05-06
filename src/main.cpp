@@ -5,6 +5,7 @@
  *
  */
 
+#include <QApplication>
 #include <QLocale>
 #include <QTranslator>
 
