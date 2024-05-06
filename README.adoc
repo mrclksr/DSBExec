@@ -51,3 +51,125 @@ Then as root run
 ----
 # cmake --install build
 ----
+
+== Development
+
+=== Contributing Translations
+
+==== Available Translations
+
+* French
+* German
+
+==== Instructions
+Let's say you want to add French translations, you can proceed as follows:
+
+. Create a fork of this repo, and clone it:
++
+[source,sh]
+----
+% git clone url-of-your-fork
+----
+. Install https://www.freshports.org/devel/qt6-tools/[devel/qt6-tools]
+. `cd` to `your-forked-dsbexec-dir`
+. Add `locale/dsbexec_fr.ts` to the `TS_FILES` list in `CMakeLists.txt`.
+. In order to create the `dsbexec_fr.ts` file, run
+
+[source,sh]
+----
+% cd your-fork
+% cmake -S . -B build
+% cmake --build build -t dsbexec_lupdate
+----
+. Run `linguist6 locale/dsbexec_fr.ts`
+. Add the file to the repo: `git add locale/dsbexec_fr.ts`
+. Commit: `git commit -am 'Add French translations.'`
+. Send a pull request.
+
+[[look]]
+== Configuring the Look and Behavior of Qt6 Applications
+
+If you are not using a desktop environment that takes care of your Qt
+application's look and behavior, you can use
+https://freshports.org/misc/qt6ct[_qt6ct_] together with the
+https://www.freshports.org/x11-themes/Kvantum[_Kvantum_] theme engine.
+
+[[kvantum]]
+=== qt6ct and the Kvantum theme engine
+
+==== qt6ct
+
+https://freshports.org/misc/qt6ct[_qt6ct_] is a tool that allows you to
+configure themes, fonts, and icons of Qt6 applications.
+It can be installed via `pkg`
+
+[source,sh]
+----
+# pkg install qt6ct
+----
+
+or via the FreeBSD ports:
+
+[source,sh]
+----
+# cd /usr/ports/misc/qt6ct
+# make install
+----
+
+In order to make Qt6 applications use _qt6ct_, add the line
+`export QT_QPA_PLATFORMTHEME=qt6ct` to one of the following files, depending
+on how you start your X session:
+
+[[session_files]]
+.Session Files
+[options="header,footer"]
+|==================================================
+|X Session Start Method           |File
+|_SliM_, _startx_, _xinit_        |`~/.xinitrc`
+|_GDM_, _LightDM_, _LXDM_, _SDDM_ |`~/.xprofile`
+|_WDM_, _XDM_                     |`~/.xsession`
+|==================================================
+
+Alternatively, you can add the line to your window manager's startup
+script, or, if you are using a Bourne shell compatible login shell, to
+your `~/.profile`.
+
+After loggin out and in again, proceed with the next section.
+
+==== Kvantum
+
+https://www.freshports.org/x11-themes/Kvantum[_Kvantum_] is a SVG-based theme
+engine for Qt, KDE and LXQt. Install it via `pkg`:
+
+[source, sh]
+----
+# pkg install Kvantum-qt6
+----
+
+or via the FreeBSD ports:
+
+[source,sh]
+----
+# cd /usr/ports/x11-themes/Kvantum
+# make install distclean
+----
+
+Start `qt6ct` and choose *_kvantum_* under *_Appeareance_* -> *_Style_*, and
+press _Ok_.
+
+[TIP]
+====
+You can use _Kvantum_ directly without _qt6ct_ by setting
+`QT_STYLE_OVERRIDE=kvantum`. Note, however, that the _Kvantum Manager_
+lacks the ability to change fonts and the icon theme.
+====
+
+Now you can start `kvantummanager` to set, install and configure themes.
+
+[TIP]
+====
+You can download
+link:https://store.kde.org/browse/cat/123/order/latest[Kvantum themes]
+from https://store.kde.org[KDE Store]. Unpack them, and use the
+_Kvantum Manager_ to install new themes.
+====
